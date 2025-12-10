@@ -117,6 +117,9 @@ curl -X POST http://127.0.0.1:8000/api/classify/ \
 # Response:
 # {"label": "safe", "confidence": 0.2, "action": "allow", ...}
 ```
+## Working
+
+https://github.com/user-attachments/assets/5bb7aea2-6f01-40d3-a608-b10691e80241
 
 ## 🏗️ Project Structure
 
