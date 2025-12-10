@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>FilterX</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="popup-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-text">
+                <h1>FilterX</h1>
+                <p class="subtitle">All Safe Shield</p>
+            </div>
+        </div>
+
+        <!-- Status Section -->
+        <div class="status-section">
+            <div class="status-header">
+                <span class="status-label">Protection Active</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-btn" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <p class="status-description">Real-time AI scanning all content</p>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-section">
+            <div class="stat-item">
+                <div class="stat-value" id="blocked-count">0</div>
+                <div class="stat-label">Blocked</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="blurred-count">0</div>
+                <div class="stat-label">Blurred</div>
+            </div>
+        </div>
+
+        <!-- Running Locally -->
+        <p class="running-locally">Running locally on this device</p>
+
+        <!-- Action Buttons -->
+        <button id="dashboard-btn" class="btn btn-primary">Open Dashboard (Full Screen)</button>
+        <button id="settings-btn" class="btn btn-secondary">Open Settings</button>
+
+        <!-- Aggressiveness Control (Hidden by default, can be shown in settings) -->
+        <div style="display: none; margin-top: 15px;">
+            <label for="aggressiveness-select">Aggressiveness:</label>
+            <select id="aggressiveness-select">
+                <option value="aggressive">Aggressive</option>
+                <option value="normal">Normal</option>
+                <option value="light">Light</option>
+            </select>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>
