@@ -140,11 +140,18 @@ async function classifyAndApply(img) {
 
 function applyResult(img, response) {
   if (!response) return;
+  if (response.error) {
+    console.warn('[FilterX] Error in response:', response.error);
+    return;
+  }
   if (response.label === "nsfw") {
-    if (response.action === "block") {
+    const action = response.action || "block"; // Default to block if action not specified
+    if (action === "block") {
       img.style.display = "none";
-    } else if (response.action === "blur") {
+      console.log('[FilterX] Blocked NSFW image');
+    } else if (action === "blur") {
       img.style.filter = "blur(10px)";
+      console.log('[FilterX] Blurred NSFW image');
     }
   }
 }

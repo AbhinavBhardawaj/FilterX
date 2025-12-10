@@ -1,5 +1,10 @@
 const API_BASE_URL = "http://127.0.0.1:8000";
 
+// TensorFlow.js and local model configuration
+// Set to false to disable local model and use backend API only (recommended for debugging)
+let _useLocalModel = false;
+let _modelReady = false;
+
 // Simple in-memory cache for recent classifications
 const _cache = new Map();
 
@@ -31,7 +36,7 @@ function _processQueue() {
   }
 }
 
-// Initialize storage
+// Initialize storage and model
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.get(["filterxEnabled", "stats", "activityLog", "aggressiveness"], (items) => {
     const defaults = {};
@@ -45,7 +50,32 @@ chrome.runtime.onInstalled.addListener(() => {
     const ag = items.aggressiveness || defaults.aggressiveness || 'normal';
     _applyAggressiveness(ag);
   });
+
+  // Initialize local model loading in the background
+  _initializeLocalModel();
 });
+
+// Initialize the local NSFW model
+async function _initializeLocalModel() {
+  if (!_useLocalModel) return;
+  
+  try {
+    console.log('[FilterX] Initializing local NSFW model...');
+    // Try to load the model asynchronously (don't block initialization)
+    loadModel()
+      .then(() => {
+        _modelReady = true;
+        console.log('[FilterX] Local model ready for inference');
+      })
+      .catch(err => {
+        console.warn('[FilterX] Failed to load local model, will use backend API:', err);
+        _modelReady = false;
+      });
+  } catch (err) {
+    console.warn('[FilterX] Error initializing local model:', err);
+    _modelReady = false;
+  }
+}
 
 // Listen for aggressiveness changes and update concurrency dynamically
 chrome.storage.onChanged.addListener((changes, area) => {
@@ -92,14 +122,37 @@ async function classifyImage(base64Image) {
     const key = base64Image.slice(0, 200);
     if (_cache.has(key)) return _cache.get(key);
 
+    let result = null;
+
+    // Try local model first if it's ready
+    if (_useLocalModel && _modelReady) {
+      try {
+        result = await classifyImageLocal(base64Image);
+        if (result && !result.error) {
+          console.log('[FilterX] Using local model for classification');
+          _cache.set(key, result);
+          await _scheduleLog(`Image ${result.label === "nsfw" ? "blocked" : "allowed"} (local)`);
+          return result;
+        }
+      } catch (err) {
+        console.warn('[FilterX] Local classification failed, falling back to backend:', err);
+      }
+    }
+
+    // Fallback to backend API
     const res = await fetch(`${API_BASE_URL}/api/classify/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "image", content: base64Image })
     });
-    const result = await res.json();
+    if (!res.ok) {
+      throw new Error(`Backend API returned ${res.status}`);
+    }
+    result = await res.json();
     _cache.set(key, result);
-    await _scheduleLog(`Image ${result.label === "nsfw" ? "blocked" : "allowed"}`);
+    if (result.label && result.action) {
+      await _scheduleLog(`Image ${result.label === "nsfw" ? "blocked" : "allowed"} (backend)`);
+    }
     return result;
   } catch (error) {
     console.error("Error classifying image:", error);

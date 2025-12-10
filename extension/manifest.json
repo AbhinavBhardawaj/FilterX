@@ -6,13 +6,13 @@
   "icons": { "16": "icons/16.png", "48":"icons/48.png", "128":"icons/128.png" },
   "permissions": ["storage", "activeTab", "scripting", "tabs"],
   "host_permissions": ["<all_urls>"],
-  "background": { "service_worker": "background.js" },
+  "background": { "service_worker": "sw.js" },
   "action": { "default_popup": "popup.html", "default_icon": "icons/48.png" },
   "options_page": "options.html",
   "content_scripts": [
     { "matches": ["<all_urls>"], "js": ["contentScript.js"], "run_at": "document_idle" }
   ],
   "web_accessible_resources": [
-    { "resources": ["dashboard.html", "options.html", "assets/*"], "matches": ["<all_urls>"] }
+    { "resources": ["dashboard.html", "options.html", "assets/*", "model/nsfw_model.tflite"], "matches": ["<all_urls>"] }
   ]
 }
